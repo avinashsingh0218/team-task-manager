@@ -12,7 +12,7 @@ from app.routers import auth, users, projects, tasks, dashboard
 # ── Create DB tables ─────────────────────────────────────────
 Base.metadata.create_all(bind=engine)
 
-# ── Initialize App ───────────────────────────────────────────
+# ── Initialize FastAPI App ───────────────────────────────────
 app = FastAPI(
     title=settings.APP_NAME,
     description="A full-stack team task manager with role-based access control",
@@ -21,18 +21,14 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# ── CORS FIX (FINAL) ─────────────────────────────────────────
-# Allow your frontend + local dev
-
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://team-task-manager-sigma-livid.vercel.app",
-]
-
+# ── FINAL CORS CONFIG (WORKS FOR LOCAL + VERCEL) ─────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,        # ✅ specific allowed domains
+    allow_origin_regex=r"https://.*vercel\.app",  # ✅ allows ALL Vercel deployments
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ],  # ✅ local dev
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
