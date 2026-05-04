@@ -1,10 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/axios';
 
-// Create the context — this holds our global auth state
 const AuthContext = createContext(null);
 
-// Custom hook so components can do: const { user, login } = useAuth();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used inside AuthProvider');
@@ -12,20 +10,19 @@ export const useAuth = () => {
 };
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true);  // true while checking token on startup
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // On app load: check if there's a saved token and validate it
+  // Check token on app load
   useEffect(() => {
     const token = localStorage.getItem('token');
+
     if (token) {
-      // Verify the token is still valid by calling /me
-      api.get('/api/auth/me')
+      api.get('/auth/me')   // ✅ FIXED (removed /api)
         .then((res) => {
           setUser(res.data);
         })
         .catch(() => {
-          // Token is invalid/expired — clean up
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         })
@@ -35,27 +32,31 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // ── Login ──────────────────────────────────────────────────
+  // ✅ LOGIN
   const login = async (email, password) => {
-    const res = await api.post('/api/auth/login', { email, password });
+    const res = await api.post('/auth/login', { email, password });  // ✅ FIXED
     const { access_token, user: userData } = res.data;
+
     localStorage.setItem('token', access_token);
     localStorage.setItem('user', JSON.stringify(userData));
+
     setUser(userData);
     return userData;
   };
 
-  // ── Signup ─────────────────────────────────────────────────
+  // ✅ SIGNUP
   const signup = async (name, email, password) => {
-    const res = await api.post('/api/auth/signup', { name, email, password });
+    const res = await api.post('/auth/signup', { name, email, password }); // ✅ FIXED
     const { access_token, user: userData } = res.data;
+
     localStorage.setItem('token', access_token);
     localStorage.setItem('user', JSON.stringify(userData));
+
     setUser(userData);
     return userData;
   };
 
-  // ── Logout ─────────────────────────────────────────────────
+  // ✅ LOGOUT
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

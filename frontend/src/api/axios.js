@@ -1,11 +1,12 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://team-task-manager-production-3a26.up.railway.app',
+  baseURL: import.meta.env.VITE_API_URL, 
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
@@ -15,19 +16,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// handle 401 token expiration
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+
       
-      if (!window.location.pathname.includes('/login') && 
-          !window.location.pathname.includes('/signup')) {
+      if (
+        !window.location.pathname.includes('/login') &&
+        !window.location.pathname.includes('/signup')
+      ) {
         window.location.href = '/login';
       }
     }
+
     return Promise.reject(error);
   }
 );
