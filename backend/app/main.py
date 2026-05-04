@@ -22,11 +22,16 @@ app = FastAPI(
     redoc_url="/redoc",    # ReDoc at /redoc
 )
 
-# ── CORS Middleware ───────────────────────────────────────────────────────────
-# Allows the React frontend (running on a different port) to call this API
+import os
+
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+allowed_origins = [frontend_url]
+if "localhost" not in frontend_url:
+    allowed_origins.extend(["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+    allow_origins=allowed_origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
