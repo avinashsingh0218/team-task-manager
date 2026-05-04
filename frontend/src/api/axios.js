@@ -1,13 +1,18 @@
 import axios from 'axios';
 
+// ✅ Fallback added (VERY IMPORTANT)
+const BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  'https://team-task-manager-production-3a26.up.railway.app';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, 
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-
+// ✅ Attach token automatically
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -16,7 +21,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-
+// ✅ Handle expired token
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -24,7 +29,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
 
-      
+      // redirect only if not already on auth pages
       if (
         !window.location.pathname.includes('/login') &&
         !window.location.pathname.includes('/signup')

@@ -13,18 +13,20 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check token on app load
+  // ✅ Check token on app load
   useEffect(() => {
     const token = localStorage.getItem('token');
 
     if (token) {
-      api.get('/auth/me')   // ✅ FIXED (removed /api)
+      api.get('/api/auth/me')
         .then((res) => {
           setUser(res.data);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('Token invalid:', err);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          setUser(null);
         })
         .finally(() => setLoading(false));
     } else {
@@ -34,26 +36,42 @@ export function AuthProvider({ children }) {
 
   // ✅ LOGIN
   const login = async (email, password) => {
-    const res = await api.post('/auth/login', { email, password });  // ✅ FIXED
-    const { access_token, user: userData } = res.data;
+    try {
+      const res = await api.post('/api/auth/login', { email, password });
 
-    localStorage.setItem('token', access_token);
-    localStorage.setItem('user', JSON.stringify(userData));
+      const { access_token, user: userData } = res.data;
 
-    setUser(userData);
-    return userData;
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setUser(userData);
+      return userData;
+    } catch (err) {
+      console.error('Login error:', err.response?.data || err.message);
+      throw err;
+    }
   };
 
   // ✅ SIGNUP
   const signup = async (name, email, password) => {
-    const res = await api.post('/auth/signup', { name, email, password }); // ✅ FIXED
-    const { access_token, user: userData } = res.data;
+    try {
+      const res = await api.post('/api/auth/signup', {
+        name,
+        email,
+        password,
+      });
 
-    localStorage.setItem('token', access_token);
-    localStorage.setItem('user', JSON.stringify(userData));
+      const { access_token, user: userData } = res.data;
 
-    setUser(userData);
-    return userData;
+      localStorage.setItem('token', access_token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setUser(userData);
+      return userData;
+    } catch (err) {
+      console.error('Signup error:', err.response?.data || err.message);
+      throw err;
+    }
   };
 
   // ✅ LOGOUT
@@ -74,7 +92,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
